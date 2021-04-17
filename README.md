@@ -10,9 +10,9 @@ communities.(Graph visualisation,Community size, Community description,Frequency
 # Tools Used
 Micro Web Framework<br/>
 • Flask<br/>
-Python packages
+Python packages<br/>
 • Networkx<br/>
-Graph manipulation and visualization
+Graph manipulation and visualization<br/>
 • Community<br/>
 This python package was used to perform community detection using the girvan-newman
 algorithm <br/>
