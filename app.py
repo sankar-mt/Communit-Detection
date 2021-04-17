@@ -35,7 +35,7 @@ def __repr__(self):
 def send_reset_email(user):
     token = get_reset_token(user)
     msg = Message('Password Reset Request',
-                  sender='innovationlabpsg@gmail.com',
+                  sender='MAIL',
                   recipients=[user.email])
     msg.body = f'''To reset your password, visit the following link:
 {url_for('reset_token', token=token, _external=True)}
@@ -46,7 +46,7 @@ If you did not make this request then simply ignore this email and no changes wi
 
 @app.route("/reset_password", methods=['GET', 'POST'])
 def reset_request():
-    user = User.query.filter_by(email='innovationlabpsg@gmail.com').first()
+    user = User.query.filter_by(email='MAIL').first()
     send_reset_email(user)
     
     flash('An email has been sent with instructions to reset your password.', 'info')
@@ -145,11 +145,12 @@ def logout():
 @app.route('/viewinput',methods = ['POST'])
 def modelrun(): 
     #saving basic model  
+  
    import os
    if request.method == 'POST':
     graph = request.files['input']
-    graph.save(os.path.join("DIRECTORY_PATH","graph.txt"))
-    f="DIRECTORY_PATH/graph.txt"
+    graph.save(os.path.join("PATH_TO_DIR","graph.txt"))
+    f="PATH_TO_DIR/graph.txt"
     from communities.algorithms import louvain_method,girvan_newman
     from communities.visualization import draw_communities
     import networkx as nx
@@ -165,14 +166,19 @@ def modelrun():
                     G.add_edge(int(line[0]),int(line[1]))
     G = nx.Graph()  
     print(G)
-    buildG(G, f, ',')
+    buildG(G, f, ' ')
+    nx.draw(G,pos=nx.spring_layout(G))
+    plt.savefig('../static/plotgraph.png')
     #matrix to array
     S= np.array(nx.to_numpy_matrix(G,dtype=int))
     print(S)
-        
+    plt.clf()
+    plt.cla()
+    plt.close()
+
     #louvain    
     communities, _ = louvain_method(S)
-    draw_communities(S, communities,False,'PATH_TO_LOUVAIN')
+    draw_communities(S, communities,False,'../static/louvain.png')
     print("communities")
     plt.clf()
     plt.cla()
@@ -183,6 +189,20 @@ def modelrun():
     import matplotlib.cm as cm
     L=G
     partition = girvan_newman.best_partition(L)
+
+
+    # draw the graph
+    pos = nx.spring_layout(L)
+    cmap = cm.get_cmap('viridis', max(partition.values()) + 1)
+    nx.draw_networkx_nodes(L, pos, partition.keys(), node_size=40,
+    cmap=cmap, node_color=list(partition.values()))
+    nx.draw_networkx_edges(L, pos, alpha=0.5)
+    plt.savefig('../static/girvan.png') 
+    plt.clf()
+    plt.cla()
+    plt.close()
+
+    #visualization
     #Highest_degree
     com = set(partition.values())
     c_dict = {c: [l for l,i in partition.items() if i==c ] for c in com}
@@ -200,17 +220,6 @@ def modelrun():
     for i in range(0,len(highest_degree)):
         length.append(i)
     
-    # draw the graph
-    pos = nx.spring_layout(L)
-    cmap = cm.get_cmap('viridis', max(partition.values()) + 1)
-    nx.draw_networkx_nodes(L, pos, partition.keys(), node_size=40,
-    cmap=cmap, node_color=list(partition.values()))
-    nx.draw_networkx_edges(L, pos, alpha=0.5)
-    plt.savefig('PATH_TO_GIRVAN') 
-    plt.clf()
-    plt.cla()
-    plt.close()
-
     f=[]
     i=0
     y=0
@@ -259,14 +268,65 @@ def modelrun():
 
     plt.xlabel('Communities')
     plt.ylabel('No. of nodes')
-    plt.savefig('PATH_BARGRAPH.png') 
+    plt.savefig('../static/bargraph.png') 
     plt.clf()
     plt.cla()
     plt.close()
+    
+    
+    
+    #calculating radius, diameter,center, periphery for each community and image
+    d=[]
+    r=[]
+    c=[]
+    p=[]
 
-    return render_template("view.html",y=y,l=l,partition=partition,m=m,g=g,a=a,length=length)
-
-
+    for i in range(0,len(highest_degree)):
+        d.append([])
+    for i in range(0,len(highest_degree)):
+        r.append([])
+    for i in range(0,len(highest_degree)):
+        c.append([])
+    for i in range(0,len(highest_degree)):
+        p.append([])  
+    count=0                                            
+    
+    for i in range(0,len(highest_degree)):
+     L= G.copy()
+     f='PATH_TO_DIR/graph.txt'
+     def removeG(L, file_, delimiter_):
+            reader = csv.reader(open(file_), delimiter=delimiter_)
+            for line in reader:
+                if partition[int(line[0])]!=i:
+                 if partition[int(line[1])]!=i and L.has_edge(int(line[0]),int(line[1])):  
+                    L.remove_edge(int(line[0]),int(line[1]))
+                    L.remove_node(int(line[0]))
+                    L.remove_node(int(line[1]))
+                if partition[int(line[0])]!=i and L.has_node(int(line[0])):
+                    L.remove_node(int(line[0]))
+                if partition[int(line[1])]!=i  and L.has_node(int(line[1])):
+                    L.remove_node(int(line[1]))
+    
+     removeG(L,f,' ')
+     ecc = nx.eccentricity(L,v=None ,sp=None)
+     k=nx.diameter(L,e=ecc)
+     print(k)
+     d[i].append(k)
+     r[i].append(nx.radius(L,e=ecc))
+     for k in nx.center(L,e=ecc):
+        c[i].append(k)
+     for k in nx.periphery(L,e=ecc):
+        p[i].append(k)
+     nx.draw_networkx(L, with_labels = True)
+     f='../static/community'+str(count)+'.png'
+     count=count+1
+     plt.savefig(f)
+     plt.clf()
+     plt.cla()
+     plt.close()
+         
+    return render_template("view.html",y=y,l=l,partition=partition,m=m,g=g,a=a,length=length,count=count,d=d,p=p,r=r,c=c)
+   
 if __name__ == "__main__":
    app.run(debug=True,port=35729)    
 
