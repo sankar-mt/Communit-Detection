@@ -1,11 +1,11 @@
 # Community-Detection
 Detecting communities from a given undirected graph and performing a detailed analysis on the 
-communities.(Graph visualisation,Community size, Community description,Frequency plot,Radius,Degree,Center,Peripherals)
+communities that have been detected.(Graph visualisation,Community size, Community description,Frequency plot,Radius,Degree,Center,Peripherals)
 
 # Dataset Description
 • Nodes: 351<br/>
 • Edges: 1150<br/>
-• Type: Undirected,unweighted<br/>
+• Type: Undirected, Unweighted<br/>
 
 # Tools Used
 ## Micro Web Framework<br/>
