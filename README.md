@@ -8,9 +8,9 @@ communities.(Graph visualisation,Community size, Community description,Frequency
 • Type: Undirected,unweighted<br/>
 
 # Tools Used
-Micro Web Framework<br/>
+## Micro Web Framework<br/>
 • Flask<br/>
-Python packages<br/>
+## Python packages<br/>
 • Networkx<br/>
 Graph manipulation and visualization<br/>
 • Community<br/>
